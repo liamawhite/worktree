@@ -140,32 +140,54 @@ func (wm *WorktreeManager) AddWorktree(branch, base string) error {
 	return nil
 }
 
-func (wm *WorktreeManager) RemoveWorktree(worktreePath string) error {
+func (wm *WorktreeManager) RemoveWorktree(worktreePath string) (bool, error) {
 	worktreeName := filepath.Base(worktreePath)
 
+	// Check if we're currently in the worktree we're about to remove
+	currentDir, err := os.Getwd()
+	if err != nil {
+		return false, err
+	}
+
+	needsChdir := strings.HasPrefix(currentDir, worktreePath)
+
 	if err := git.RunGitCommand("worktree", "remove", worktreeName, "--force"); err != nil {
-		return err
+		return needsChdir, err
 	}
 
 	if err := git.DeleteBranch(wm.GitRoot, worktreeName); err != nil {
-		return err
+		return needsChdir, err
 	}
 
-	return nil
+	return needsChdir, nil
 }
 
-func (wm *WorktreeManager) ClearWorktrees() error {
-	if err := os.Chdir(wm.GitRoot); err != nil {
-		return err
+func (wm *WorktreeManager) ClearWorktrees() (bool, error) {
+	// Check if we're currently in a worktree that will be removed
+	currentDir, err := os.Getwd()
+	if err != nil {
+		return false, err
 	}
 
 	filteredWorktrees, err := wm.GetFilteredWorktrees()
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	if len(filteredWorktrees) == 0 {
-		return nil
+		return false, nil
+	}
+
+	needsChdir := false
+	for _, worktreePath := range filteredWorktrees {
+		if strings.HasPrefix(currentDir, worktreePath) {
+			needsChdir = true
+			break
+		}
+	}
+
+	if err := os.Chdir(wm.GitRoot); err != nil {
+		return needsChdir, err
 	}
 
 	for _, worktreePath := range filteredWorktrees {
@@ -182,7 +204,7 @@ func (wm *WorktreeManager) ClearWorktrees() error {
 		}
 	}
 
-	return nil
+	return needsChdir, nil
 }
 
 func (wm *WorktreeManager) SwitchWorktree(worktreePath string) error {
