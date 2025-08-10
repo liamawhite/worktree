@@ -34,6 +34,7 @@ func TestParseRepoString(t *testing.T) {
 			repo:          "owner/repo",
 			defaultBranch: "main",
 			want: &RepoConfig{
+				Domain:   "github.com",
 				Org:      "owner",
 				RepoName: "repo",
 				Branch:   "main",
@@ -91,6 +92,7 @@ func TestRepoConfig_IsGitHubEnterprise(t *testing.T) {
 		{
 			name: "GitHub.com",
 			config: &RepoConfig{
+				Domain:   "github.com",
 				Org:      "owner",
 				RepoName: "repo",
 			},

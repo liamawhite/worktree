@@ -39,9 +39,9 @@ func TestFindGitRoot(t *testing.T) {
 				}
 
 				oldCwd, _ := os.Getwd()
-				os.Chdir(tmpDir)
+				_ = os.Chdir(tmpDir)
 
-				return tmpDir, func() { os.Chdir(oldCwd) }
+				return tmpDir, func() { _ = os.Chdir(oldCwd) }
 			},
 			wantErr: false,
 		},
@@ -50,9 +50,9 @@ func TestFindGitRoot(t *testing.T) {
 			setup: func(t *testing.T) (string, func()) {
 				tmpDir := t.TempDir()
 				oldCwd, _ := os.Getwd()
-				os.Chdir(tmpDir)
+				_ = os.Chdir(tmpDir)
 
-				return "", func() { os.Chdir(oldCwd) }
+				return "", func() { _ = os.Chdir(oldCwd) }
 			},
 			wantErr: true,
 		},

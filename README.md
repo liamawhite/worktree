@@ -1,6 +1,6 @@
 # worktree
 
-A semi-opinionated git worktree workflow for developers that enables you to work on multiple branches simultaneously in separate directories, eliminating the need to constantly `git stash`, `git checkout`, and context switch between different features or bug fixes. With supoort for GitHub, GitLab and any enterprise git solution.
+A semi-opinionated git worktree workflow CLI for developers that enables you to work on multiple branches simultaneously in separate directories, eliminating the need to constantly `git stash`, `git checkout`, and context switch between different features or bug fixes. With supoort for GitHub, GitLab and any enterprise git solution.
 
 ## Installation
 

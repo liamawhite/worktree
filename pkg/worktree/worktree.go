@@ -128,7 +128,7 @@ func (wm *WorktreeManager) AddWorktree(branch, base string) error {
 		return err
 	}
 
-	if err := git.RunGitCommand("worktree", "add", "-b", branch, branch); err != nil {
+	if err := git.RunGitCommand("worktree", "add", "-b", branch, branch, base); err != nil {
 		return err
 	}
 

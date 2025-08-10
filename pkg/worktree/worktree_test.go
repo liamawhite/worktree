@@ -131,7 +131,25 @@ func TestWorktreeManager_CreateHooks(t *testing.T) {
 	// Check hook content
 	content, err := os.ReadFile(hookFile)
 	require.NoError(t, err)
-	expected := "#!/bin/sh\n\n# Anything here will be ran in the root of a newly created worktree\ngit pull upstream main"
+	expected := `#!/bin/sh
+
+# Copyright 2025 Liam White
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Anything here will be ran in the root of a newly created worktree
+git pull upstream main
+`
 	assert.Equal(t, expected, string(content))
 }
 
@@ -158,7 +176,7 @@ func TestWorktreeManager_GetPostAddHook(t *testing.T) {
 func TestWorktreeManager_SwitchWorktree(t *testing.T) {
 	// Save current directory
 	originalDir, _ := os.Getwd()
-	defer os.Chdir(originalDir)
+	defer func() { _ = os.Chdir(originalDir) }()
 
 	tmpDir := t.TempDir()
 	wm := &WorktreeManager{GitRoot: tmpDir}
