@@ -45,15 +45,6 @@ func GetDefaultConfigPath() (string, error) {
 	return filepath.Join(homeDir, ".config", "worktree", "settings.yaml"), nil
 }
 
-// LoadDefaultConfig loads configuration from the default path
-func LoadDefaultConfig() (*Config, error) {
-	configPath, err := GetDefaultConfigPath()
-	if err != nil {
-		return nil, err
-	}
-	return LoadConfigFromPath(configPath)
-}
-
 // LoadConfigFromPath loads configuration from the specified path
 func LoadConfigFromPath(configPath string) (*Config, error) {
 	// Create config directory if it doesn't exist

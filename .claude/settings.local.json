@@ -5,7 +5,9 @@
       "Bash(go test:*)",
       "WebFetch(domain:api.github.com)",
       "Bash(gh run view:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(git add:*)",
+      "Bash(gh pr create:*)"
     ],
     "deny": []
   }

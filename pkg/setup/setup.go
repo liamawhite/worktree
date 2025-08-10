@@ -58,16 +58,16 @@ func (rc *RepoConfig) IsGitHubEnterprise() bool {
 	return rc.Domain != "github.com"
 }
 
-func SetupRepository(config *RepoConfig) error {
-	if config.IsGitHubEnterprise() {
-		return setupGHERepo(config)
+func SetupRepository(repoConfig *RepoConfig, configPath string) error {
+	if repoConfig.IsGitHubEnterprise() {
+		return setupGHERepo(repoConfig, configPath)
 	}
-	return setupGitHubRepo(config)
+	return setupGitHubRepo(repoConfig, configPath)
 }
 
-func setupGHERepo(repoConfig *RepoConfig) error {
+func setupGHERepo(repoConfig *RepoConfig, configPath string) error {
 	// Load configuration to get account name for this domain
-	cfg, err := config.LoadDefaultConfig()
+	cfg, err := config.LoadConfigFromPath(configPath)
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
@@ -76,7 +76,7 @@ func setupGHERepo(repoConfig *RepoConfig) error {
 	if account == "" {
 		// For GHE, we'll clone directly from the original repository if no account is configured
 		fmt.Printf("No account configured for %s, cloning directly from %s/%s\n", repoConfig.Domain, repoConfig.Org, repoConfig.RepoName)
-		return setupDirectCloneGHE(repoConfig)
+		return setupDirectCloneGHE(repoConfig, configPath)
 	}
 
 	fmt.Printf("Cloning forked %s repository from %s and hiding .git internals\n", repoConfig.RepoName, repoConfig.Domain)
@@ -110,7 +110,7 @@ func setupGHERepo(repoConfig *RepoConfig) error {
 }
 
 // setupDirectCloneGHE clones directly from the original GHE repository
-func setupDirectCloneGHE(repoConfig *RepoConfig) error {
+func setupDirectCloneGHE(repoConfig *RepoConfig, configPath string) error {
 	fmt.Printf("Cloning %s/%s/%s repository directly and hiding .git internals\n", repoConfig.Domain, repoConfig.Org, repoConfig.RepoName)
 
 	if err := os.MkdirAll(repoConfig.RepoName, 0755); err != nil {
@@ -133,9 +133,9 @@ func setupDirectCloneGHE(repoConfig *RepoConfig) error {
 	return finishSetup("origin", repoConfig.Branch)
 }
 
-func setupGitHubRepo(repoConfig *RepoConfig) error {
+func setupGitHubRepo(repoConfig *RepoConfig, configPath string) error {
 	// Load configuration to get account name
-	cfg, err := config.LoadDefaultConfig()
+	cfg, err := config.LoadConfigFromPath(configPath)
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
