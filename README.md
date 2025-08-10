@@ -4,9 +4,7 @@ A semi-opinionated git worktree workflow CLI for developers that enables you to 
 
 ## Installation
 
-```bash
-go install github.com/liamawhite/worktree@latest
-```
+Download the latest binary from the [releases page](https://github.com/liamawhite/worktree/releases/latest).
 
 ## Features
 
