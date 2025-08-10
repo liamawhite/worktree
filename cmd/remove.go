@@ -16,6 +16,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/liamawhite/worktree/pkg/selector"
@@ -79,6 +80,15 @@ var rmCmd = &cobra.Command{
 		worktreeName := filepath.Base(selectedWorktree)
 		fmt.Printf("Removing worktree: %s\n", worktreeName)
 
-		return wm.RemoveWorktree(selectedWorktree)
+		needsChdir, err := wm.RemoveWorktree(selectedWorktree)
+		if err != nil {
+			return err
+		}
+
+		if needsChdir {
+			fmt.Fprintf(os.Stderr, "WT_CHDIR:%s\n", wm.GitRoot)
+		}
+
+		return nil
 	},
 }

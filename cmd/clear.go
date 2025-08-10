@@ -16,6 +16,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/liamawhite/worktree/pkg/worktree"
 	"github.com/spf13/cobra"
@@ -42,6 +43,15 @@ var clearCmd = &cobra.Command{
 		}
 
 		fmt.Println("Removing all worktrees except main, master and review")
-		return wm.ClearWorktrees()
+		needsChdir, err := wm.ClearWorktrees()
+		if err != nil {
+			return err
+		}
+
+		if needsChdir {
+			fmt.Fprintf(os.Stderr, "WT_CHDIR:%s\n", wm.GitRoot)
+		}
+
+		return nil
 	},
 }
