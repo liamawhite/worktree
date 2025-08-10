@@ -28,12 +28,11 @@ before:
 builds:
   - id: worktree
     main: ./main.go
-    binary: wt
+    binary: worktree
     env:
       - CGO_ENABLED=0
     goos:
       - linux
-      - windows
       - darwin
     goarch:
       - amd64
@@ -54,9 +53,6 @@ archives:
       {{- else if eq .Arch "386" }}i386
       {{- else }}{{ .Arch }}{{ end }}
       {{- if .Arm }}v{{ .Arm }}{{ end }}
-    format_overrides:
-      - goos: windows
-        formats: [zip]
 
 checksum:
   name_template: 'checksums.txt'
@@ -86,51 +82,77 @@ release:
     #### Linux (x86_64)
     ```bash
     curl -L https://github.com/liamawhite/worktree/releases/download/{{ .Tag }}/worktree_Linux_x86_64.tar.gz | tar xz
-    chmod +x wt
-    sudo mv wt /usr/local/bin/
+    chmod +x worktree
+    sudo mv worktree /usr/local/bin/
     ```
 
     #### Linux (ARM64)
     ```bash
     curl -L https://github.com/liamawhite/worktree/releases/download/{{ .Tag }}/worktree_Linux_arm64.tar.gz | tar xz
-    chmod +x wt
-    sudo mv wt /usr/local/bin/
+    chmod +x worktree
+    sudo mv worktree /usr/local/bin/
     ```
 
     #### macOS (Intel)
     ```bash
     curl -L https://github.com/liamawhite/worktree/releases/download/{{ .Tag }}/worktree_Darwin_x86_64.tar.gz | tar xz
-    chmod +x wt
-    sudo mv wt /usr/local/bin/
+    chmod +x worktree
+    sudo mv worktree /usr/local/bin/
     ```
 
     #### macOS (Apple Silicon)
     ```bash
     curl -L https://github.com/liamawhite/worktree/releases/download/{{ .Tag }}/worktree_Darwin_arm64.tar.gz | tar xz
-    chmod +x wt
-    sudo mv wt /usr/local/bin/
-    ```
-
-    #### Windows (PowerShell)
-    ```powershell
-    Invoke-WebRequest -Uri "https://github.com/liamawhite/worktree/releases/download/{{ .Tag }}/worktree_Windows_x86_64.zip" -OutFile "worktree.zip"
-    Expand-Archive -Path "worktree.zip" -DestinationPath "."
-    # Move wt.exe to a directory in your PATH
+    chmod +x worktree
+    sudo mv worktree /usr/local/bin/
     ```
 
     ### Verify Installation
     ```bash
-    wt --version
+    worktree --version
     ```
+
+    ### Optional: Shell Integration for Directory Switching
+
+    To enable automatic directory changes when using `worktree add` and `worktree switch` commands, add this function to your shell profile:
+
+    (`~/.bashrc`, `~/.bash_profile`, `~/.zshrc`):
+    ```bash
+    worktree() {
+        local cmd="$1"
+        
+        # Commands that should change directory
+        if [[ "$cmd" == "add" || "$cmd" == "switch" || "$cmd" == "sw" ]]; then
+            # Run the CLI and capture both output and potential directory change
+            local output
+            output=$(command worktree "$@" 2>&1)
+            local exit_code=$?
+            
+            # Print the output
+            echo "$output"
+            
+            # Look for directory change indicator in the output
+            local target_dir
+            target_dir=$(echo "$output" | grep "^WT_CHDIR:" | sed 's/^WT_CHDIR://')
+            
+            # Change directory if target was specified
+            if [[ -n "$target_dir" && -d "$target_dir" ]]; then
+                cd "$target_dir" || echo "Warning: Failed to change to directory: $target_dir"
+            fi
+            
+            return $exit_code
+        else
+            # For all other commands, just run normally
+            command worktree "$@"
+        fi
+    }
+    ```
+    After adding this function and restarting your shell (or running `source ~/.bashrc`/`source ~/.zshrc`), the `worktree add` and `worktree switch` commands will automatically change your current directory to the worktree location.
 
     ### Verification with Checksums
     Download `checksums.txt` and verify your binary:
     ```bash
-    # Linux/macOS
     sha256sum -c checksums.txt
-
-    # Windows
-    certutil -hashfile wt.exe SHA256
     ```
 
     ---
