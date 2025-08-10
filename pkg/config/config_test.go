@@ -127,12 +127,16 @@ func TestConfig_ListAccounts_NilMap(t *testing.T) {
 }
 
 func TestLoadDefaultConfig(t *testing.T) {
-	// Test that LoadDefaultConfig works
-	cfg, err := LoadDefaultConfig()
+	// Create a temporary directory for test config
+	tempDir := t.TempDir()
+	configPath := filepath.Join(tempDir, "test-config.yaml")
+
+	// Test that LoadConfigFromPath works with default values
+	cfg, err := LoadConfigFromPath(configPath)
 	require.NoError(t, err)
 	assert.NotNil(t, cfg)
 
-	// Should have the default account
+	// Should have the default account for new config
 	assert.Equal(t, "liamawhite", cfg.GetAccount("github.com"))
 }
 

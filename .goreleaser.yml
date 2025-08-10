@@ -123,17 +123,20 @@ release:
         
         # Commands that should change directory
         if [[ "$cmd" == "add" || "$cmd" == "switch" || "$cmd" == "sw" ]]; then
-            # Run the CLI and capture both output and potential directory change
-            local output
-            output=$(command worktree "$@" 2>&1)
+            # Capture stderr to look for WT_CHDIR while preserving stdout and interactive TUI
+            local temp_file
+            temp_file=$(mktemp)
+            
+            # Run command with stderr redirected to temp file
+            command worktree "$@" 2> >(tee "$temp_file" >&2)
             local exit_code=$?
             
-            # Print the output
-            echo "$output"
-            
-            # Look for directory change indicator in the output
+            # Look for directory change indicator in stderr
             local target_dir
-            target_dir=$(echo "$output" | grep "^WT_CHDIR:" | sed 's/^WT_CHDIR://')
+            target_dir=$(grep "^WT_CHDIR:" "$temp_file" 2>/dev/null | sed 's/^WT_CHDIR://')
+            
+            # Clean up temp file
+            rm -f "$temp_file"
             
             # Change directory if target was specified
             if [[ -n "$target_dir" && -d "$target_dir" ]]; then

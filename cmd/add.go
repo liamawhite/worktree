@@ -16,6 +16,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/liamawhite/worktree/pkg/worktree"
@@ -42,7 +43,7 @@ var addCmd = &cobra.Command{
 		}
 
 		worktreePath := filepath.Join(wm.GitRoot, branch)
-		fmt.Printf("WT_CHDIR:%s\n", worktreePath)
+		fmt.Fprintf(os.Stderr, "WT_CHDIR:%s\n", worktreePath)
 		return nil
 	},
 }

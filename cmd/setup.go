@@ -34,7 +34,7 @@ Clones the repository and configures upstream/origin remotes.`,
 			return err
 		}
 
-		return setup.SetupRepository(config)
+		return setup.SetupRepository(config, getConfigPath())
 	},
 }
 

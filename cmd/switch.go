@@ -16,6 +16,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/liamawhite/worktree/pkg/selector"
@@ -74,7 +75,7 @@ var switchCmd = &cobra.Command{
 		}
 
 		fmt.Printf("Switched to worktree: %s\n", selectedWorktree)
-		fmt.Printf("WT_CHDIR:%s\n", selectedWorktree)
+		fmt.Fprintf(os.Stderr, "WT_CHDIR:%s\n", selectedWorktree)
 		return nil
 	},
 }
