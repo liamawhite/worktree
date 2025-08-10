@@ -177,7 +177,6 @@ func setupGitHubRepo(repoConfig *RepoConfig) error {
 	return finishSetup("origin", repoConfig.Branch)
 }
 
-
 func createGitDirFile() error {
 	cwd, err := os.Getwd()
 	if err != nil {

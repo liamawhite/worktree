@@ -44,7 +44,7 @@ func TestWorktreeFullWorkflow(t *testing.T) {
 
 	// Step 3: Setup repository (without forking, direct clone)
 	t.Log("Setting up repository...")
-	output, err := framework.RunCommand("setup", testRepo, testBranch)
+	output, err := framework.RunCommand("setup", testRepo, "--base", testBranch)
 	require.NoError(t, err, "Failed to setup repository: %s", string(output))
 	t.Logf("Setup output: %s", string(output))
 
@@ -62,28 +62,32 @@ func TestWorktreeFullWorkflow(t *testing.T) {
 	assert.DirExists(t, testBranch, "Main branch worktree should exist")
 	assert.DirExists(t, "review", "Review worktree should exist")
 
+	// Verify git remotes are configured correctly
+	t.Log("Verifying git remotes...")
+	framework.VerifyRemotes("origin", "test")
+
 	// Step 4: Add test worktrees
 	t.Log("Adding test worktrees...")
 
 	// Add test1 worktree
-	output, err = framework.RunCommandInDir("worktree", "add", "test1", "--base", testBranch)
+	output, err = framework.RunCommand("add", "test1", "--base", testBranch)
 	require.NoError(t, err, "Failed to add test1 worktree: %s", string(output))
 	t.Logf("Add test1 output: %s", string(output))
 
 	// Verify test1 was created
-	assert.DirExists(t, "worktree/test1", "test1 worktree should exist")
+	assert.DirExists(t, "test1", "test1 worktree should exist")
 
 	// Add test2 worktree
-	output, err = framework.RunCommandInDir("worktree", "add", "test2", "--base", testBranch)
+	output, err = framework.RunCommand("add", "test2", "--base", testBranch)
 	require.NoError(t, err, "Failed to add test2 worktree: %s", string(output))
 	t.Logf("Add test2 output: %s", string(output))
 
 	// Verify test2 was created
-	assert.DirExists(t, "worktree/test2", "test2 worktree should exist")
+	assert.DirExists(t, "test2", "test2 worktree should exist")
 
 	// Step 5: Verify all worktrees exist
 	t.Log("Verifying all worktrees exist...")
-	entries, err := os.ReadDir("worktree")
+	entries, err := os.ReadDir(".")
 	require.NoError(t, err)
 
 	var worktreeDirs []string
@@ -101,23 +105,23 @@ func TestWorktreeFullWorkflow(t *testing.T) {
 
 	// Step 6: Remove test1 worktree using direct command
 	t.Log("Removing test1 worktree...")
-	output, err = framework.RunCommandInDir("worktree", "rm", "test1")
+	output, err = framework.RunCommand("rm", "test1")
 	require.NoError(t, err, "Failed to remove test1 worktree: %s", string(output))
 	t.Logf("Remove test1 output: %s", string(output))
 
 	// Verify test1 was removed
-	assert.NoDirExists(t, "worktree/test1", "test1 worktree should be removed")
-	assert.DirExists(t, "worktree/test2", "test2 worktree should still exist")
+	assert.NoDirExists(t, "test1", "test1 worktree should be removed")
+	assert.DirExists(t, "test2", "test2 worktree should still exist")
 
 	// Step 7: Clear all worktrees except main and review
 	t.Log("Clearing all worktrees...")
-	output, err = framework.RunCommandInDir("worktree", "clear")
+	output, err = framework.RunCommand("clear")
 	require.NoError(t, err, "Failed to clear worktrees: %s", string(output))
 	t.Logf("Clear output: %s", string(output))
 
 	// Step 8: Verify final state - only main and review should remain
 	t.Log("Verifying final state...")
-	entries, err = os.ReadDir("worktree")
+	entries, err = os.ReadDir(".")
 	require.NoError(t, err)
 
 	worktreeDirs = []string{}
@@ -135,8 +139,8 @@ func TestWorktreeFullWorkflow(t *testing.T) {
 	}
 
 	// Ensure test worktrees are gone
-	assert.NoDirExists(t, "worktree/test1", "test1 should be cleaned up")
-	assert.NoDirExists(t, "worktree/test2", "test2 should be cleaned up")
+	assert.NoDirExists(t, "test1", "test1 should be cleaned up")
+	assert.NoDirExists(t, "test2", "test2 should be cleaned up")
 
 	t.Logf("Final worktree directories: %v", worktreeDirs)
 	t.Log("✅ Integration test completed successfully!")

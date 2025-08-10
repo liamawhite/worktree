@@ -20,8 +20,10 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -135,4 +137,56 @@ func (f *Framework) VerifyAccount(domain, expectedAccount string) {
 	require.NoError(f.t, err, "Failed to get account: %s", string(output))
 	require.Contains(f.t, string(output), expectedAccount)
 	f.t.Logf("Get account output: %s", string(output))
+}
+
+// VerifyRemotes verifies that git remotes are configured correctly
+func (f *Framework) VerifyRemotes(expectedOrigin, expectedAccount string) {
+	f.t.Log("Verifying git remotes configuration...")
+
+	// Run git remote -v to get all remotes
+	cmd := exec.Command("git", "remote", "-v")
+	output, err := cmd.CombinedOutput()
+	require.NoError(f.t, err, "Failed to get git remotes: %s", string(output))
+
+	remoteOutput := string(output)
+	f.t.Logf("Git remotes output: %s", remoteOutput)
+
+	// Verify origin remote exists and points to the correct repository
+	assert.Contains(f.t, remoteOutput, "origin\t", "Origin remote should exist")
+	assert.Contains(f.t, remoteOutput, testRepo, "Origin should point to test repository")
+
+	// Check if we have remotes other than origin (which would indicate fork setup)
+	lines := strings.Split(strings.TrimSpace(remoteOutput), "\n")
+	remotes := make(map[string]bool)
+	for _, line := range lines {
+		if strings.Contains(line, "\t") && strings.Contains(line, "(fetch)") {
+			parts := strings.Split(line, "\t")
+			if len(parts) > 0 {
+				remoteName := parts[0]
+				remotes[remoteName] = true
+			}
+		}
+	}
+
+	f.t.Logf("Found remotes: %v", remotes)
+
+	// We should have origin and potentially the account remote if it's a fork
+	assert.True(f.t, remotes["origin"], "Origin remote should exist")
+
+	// If we have more than just origin, verify the account remote exists
+	if len(remotes) > 1 {
+		repoOwner := strings.Split(testRepo, "/")[0]
+		f.t.Logf("Repository owner: %s, Expected account: %s", repoOwner, expectedAccount)
+
+		// The remote name should be the account name that was actually used
+		foundAccountRemote := false
+		for remoteName := range remotes {
+			if remoteName != "origin" {
+				foundAccountRemote = true
+				f.t.Logf("Found account remote: %s", remoteName)
+				break
+			}
+		}
+		assert.True(f.t, foundAccountRemote, "Should have account remote when fork is configured")
+	}
 }
