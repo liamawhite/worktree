@@ -4,7 +4,8 @@
       "Bash(mkdir:*)",
       "Bash(go test:*)",
       "WebFetch(domain:api.github.com)",
-      "Bash(gh run view:*)"
+      "Bash(gh run view:*)",
+      "Bash(grep:*)"
     ],
     "deny": []
   }

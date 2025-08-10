@@ -28,7 +28,7 @@ before:
 builds:
   - id: worktree
     main: ./main.go
-    binary: wt
+    binary: worktree
     env:
       - CGO_ENABLED=0
     goos:
@@ -82,50 +82,50 @@ release:
     #### Linux (x86_64)
     ```bash
     curl -L https://github.com/liamawhite/worktree/releases/download/{{ .Tag }}/worktree_Linux_x86_64.tar.gz | tar xz
-    chmod +x wt
-    sudo mv wt /usr/local/bin/
+    chmod +x worktree
+    sudo mv worktree /usr/local/bin/
     ```
 
     #### Linux (ARM64)
     ```bash
     curl -L https://github.com/liamawhite/worktree/releases/download/{{ .Tag }}/worktree_Linux_arm64.tar.gz | tar xz
-    chmod +x wt
-    sudo mv wt /usr/local/bin/
+    chmod +x worktree
+    sudo mv worktree /usr/local/bin/
     ```
 
     #### macOS (Intel)
     ```bash
     curl -L https://github.com/liamawhite/worktree/releases/download/{{ .Tag }}/worktree_Darwin_x86_64.tar.gz | tar xz
-    chmod +x wt
-    sudo mv wt /usr/local/bin/
+    chmod +x worktree
+    sudo mv worktree /usr/local/bin/
     ```
 
     #### macOS (Apple Silicon)
     ```bash
     curl -L https://github.com/liamawhite/worktree/releases/download/{{ .Tag }}/worktree_Darwin_arm64.tar.gz | tar xz
-    chmod +x wt
-    sudo mv wt /usr/local/bin/
+    chmod +x worktree
+    sudo mv worktree /usr/local/bin/
     ```
 
     ### Verify Installation
     ```bash
-    wt --version
+    worktree --version
     ```
 
     ### Optional: Shell Integration for Directory Switching
 
-    To enable automatic directory changes when using `wt add` and `wt switch` commands, add this function to your shell profile:
+    To enable automatic directory changes when using `worktree add` and `worktree switch` commands, add this function to your shell profile:
 
     (`~/.bashrc`, `~/.bash_profile`, `~/.zshrc`):
     ```bash
-    wt() {
+    worktree() {
         local cmd="$1"
         
         # Commands that should change directory
         if [[ "$cmd" == "add" || "$cmd" == "switch" || "$cmd" == "sw" ]]; then
             # Run the CLI and capture both output and potential directory change
             local output
-            output=$(command wt "$@" 2>&1)
+            output=$(command worktree "$@" 2>&1)
             local exit_code=$?
             
             # Print the output
@@ -143,11 +143,11 @@ release:
             return $exit_code
         else
             # For all other commands, just run normally
-            command wt "$@"
+            command worktree "$@"
         fi
     }
     ```
-    After adding this function and restarting your shell (or running `source ~/.bashrc`/`source ~/.zshrc`), the `wt add` and `wt switch` commands will automatically change your current directory to the worktree location.
+    After adding this function and restarting your shell (or running `source ~/.bashrc`/`source ~/.zshrc`), the `worktree add` and `worktree switch` commands will automatically change your current directory to the worktree location.
 
     ### Verification with Checksums
     Download `checksums.txt` and verify your binary:

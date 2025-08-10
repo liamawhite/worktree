@@ -51,9 +51,8 @@ func getConfigPath() string {
 }
 
 var RootCmd = &cobra.Command{
-	Use:     "wt",
-	Aliases: []string{"worktree"},
-	Short:   "Git worktree management tool",
+	Use:   "worktree",
+	Short: "Git worktree management tool",
 	Long: `A CLI tool for managing Git worktrees with support for GitHub forks,
 enterprise Git hosting, and interactive worktree switching.`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {

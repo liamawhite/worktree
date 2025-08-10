@@ -14,17 +14,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Shell wrapper for wt CLI that handles directory changes
-# Usage: source this file or add the wt function to your shell profile
+# Shell wrapper for worktree CLI that handles directory changes
+# Usage: source this file or add the worktree function to your shell profile
 
-wt() {
+worktree() {
     local cmd="$1"
     
     # Commands that should change directory
     if [[ "$cmd" == "add" || "$cmd" == "switch" || "$cmd" == "sw" ]]; then
         # Run the CLI and capture both output and potential directory change
         local output
-        output=$(command wt "$@" 2>&1)
+        output=$(command worktree "$@" 2>&1)
         local exit_code=$?
         
         # Print the output
@@ -42,11 +42,11 @@ wt() {
         return $exit_code
     else
         # For all other commands, just run normally
-        command wt "$@"
+        command worktree "$@"
     fi
 }
 
 # Completion support (if the binary supports it)
-if command -v wt >/dev/null 2>&1; then
-    complete -F _wt wt 2>/dev/null || true
+if command -v worktree >/dev/null 2>&1; then
+    complete -F _worktree worktree 2>/dev/null || true
 fi
