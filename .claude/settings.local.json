@@ -6,7 +6,8 @@
       "WebFetch(domain:api.github.com)",
       "Bash(gh run view:*)",
       "Bash(grep:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(gh pr create:*)"
     ],
     "deny": []
   }
