@@ -1,3 +1,17 @@
+// Copyright 2025 Liam White
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package setup
 
 import (
@@ -19,11 +33,11 @@ type RepoConfig struct {
 
 func ParseRepoString(repo, defaultBranch string) (*RepoConfig, error) {
 	parts := strings.Split(repo, "/")
-	
+
 	config := &RepoConfig{
 		Branch: defaultBranch,
 	}
-	
+
 	switch len(parts) {
 	case 3: // domain/org/repo (GHE or explicit github.com)
 		config.Domain = parts[0]
@@ -36,7 +50,7 @@ func ParseRepoString(repo, defaultBranch string) (*RepoConfig, error) {
 	default:
 		return nil, fmt.Errorf("invalid repository format. Expected [domain/]org/repo")
 	}
-	
+
 	return config, nil
 }
 
@@ -57,14 +71,14 @@ func setupGHERepo(repoConfig *RepoConfig) error {
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
-	
+
 	account := cfg.GetAccount(repoConfig.Domain)
 	if account == "" {
 		// For GHE, we'll clone directly from the original repository if no account is configured
 		fmt.Printf("No account configured for %s, cloning directly from %s/%s\n", repoConfig.Domain, repoConfig.Org, repoConfig.RepoName)
 		return setupDirectCloneGHE(repoConfig)
 	}
-	
+
 	fmt.Printf("Cloning forked %s repository from %s and hiding .git internals\n", repoConfig.RepoName, repoConfig.Domain)
 
 	if err := os.MkdirAll(repoConfig.RepoName, 0755); err != nil {
@@ -125,12 +139,12 @@ func setupGitHubRepo(repoConfig *RepoConfig) error {
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
-	
+
 	account := cfg.GetAccount(repoConfig.Domain)
 	if account == "" {
 		return fmt.Errorf("no account configured for %s. Use 'wt config set-account %s <username>' to configure", repoConfig.Domain, repoConfig.Domain)
 	}
-	
+
 	fmt.Printf("Cloning %s repository and configuring remotes\n", repoConfig.RepoName)
 
 	if err := os.MkdirAll(repoConfig.RepoName, 0755); err != nil {
@@ -163,36 +177,13 @@ func setupGitHubRepo(repoConfig *RepoConfig) error {
 	return finishSetup("origin", repoConfig.Branch)
 }
 
-// setupDirectClone clones directly from the original repository (for when user owns both parent and fork)
-func setupDirectClone(config *RepoConfig, remoteName, baseRemote string) error {
-	fmt.Printf("Cloning %s repository directly and hiding .git internals\n", config.RepoName)
-
-	if err := os.MkdirAll(config.RepoName, 0755); err != nil {
-		return err
-	}
-
-	if err := os.Chdir(config.RepoName); err != nil {
-		return err
-	}
-
-	repoURL := fmt.Sprintf("https://github.com/%s/%s.git", config.Org, config.RepoName)
-	if err := git.CloneBare(repoURL, ".bare"); err != nil {
-		return err
-	}
-
-	if err := createGitDirFile(); err != nil {
-		return err
-	}
-
-	return finishSetup(baseRemote, config.Branch)
-}
 
 func createGitDirFile() error {
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
 	}
-	
+
 	gitdirContent := fmt.Sprintf("gitdir: %s/.bare", cwd)
 	return os.WriteFile(".git", []byte(gitdirContent), 0644)
 }

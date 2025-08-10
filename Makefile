@@ -2,6 +2,7 @@
 # Licensed under the Apache License, Version 2.0
 
 export NIX_CONFIG := warn-dirty = false
+SHELL := nix develop --command bash
 
 VERSION := $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 COMMIT := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")

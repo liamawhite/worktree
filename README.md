@@ -72,13 +72,25 @@ This workflow lets you maintain multiple branches simultaneously without the ove
 ### Building
 
 ```bash
-make build
+# Build the binary
+go build -o bin/wt .
 ```
 
 ### Testing
 
 ```bash
-go test ./...
+# Run tests
+go test -race -v ./...
+```
+
+### Linting
+
+```bash
+# Format code
+gofmt -w .
+
+# Run linter
+golangci-lint run
 ```
 
 ## License

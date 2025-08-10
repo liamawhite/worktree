@@ -1,3 +1,17 @@
+// Copyright 2025 Liam White
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package worktree
 
 import (
@@ -20,7 +34,7 @@ func TestWorktreeManager_GetWorktreeDirs(t *testing.T) {
 			name: "finds worktree directories",
 			setup: func(t *testing.T) string {
 				tmpDir := t.TempDir()
-				
+
 				// Create some worktree directories
 				dirs := []string{"main", "feature-branch", "review"}
 				for _, dir := range dirs {
@@ -28,17 +42,17 @@ func TestWorktreeManager_GetWorktreeDirs(t *testing.T) {
 						t.Fatal(err)
 					}
 				}
-				
+
 				// Create hidden directory (should be ignored)
 				if err := os.MkdirAll(filepath.Join(tmpDir, ".hidden"), 0755); err != nil {
 					t.Fatal(err)
 				}
-				
+
 				// Create a file (should be ignored)
 				if err := os.WriteFile(filepath.Join(tmpDir, "file.txt"), []byte("test"), 0644); err != nil {
 					t.Fatal(err)
 				}
-				
+
 				return tmpDir
 			},
 			wantCount: 3,
@@ -72,7 +86,7 @@ func TestWorktreeManager_GetWorktreeDirs(t *testing.T) {
 
 func TestWorktreeManager_GetFilteredWorktrees(t *testing.T) {
 	tmpDir := t.TempDir()
-	
+
 	// Create various worktree directories
 	dirs := []string{"main", "master", "review", "feature-1", "feature-2", "bugfix"}
 	for _, dir := range dirs {
@@ -145,13 +159,13 @@ func TestWorktreeManager_SwitchWorktree(t *testing.T) {
 	// Save current directory
 	originalDir, _ := os.Getwd()
 	defer os.Chdir(originalDir)
-	
+
 	tmpDir := t.TempDir()
 	wm := &WorktreeManager{GitRoot: tmpDir}
-	
+
 	err := wm.SwitchWorktree(tmpDir)
 	require.NoError(t, err)
-	
+
 	currentDir, _ := os.Getwd()
 	// On macOS, temp dirs might be symlinked, so compare resolved paths
 	expectedResolved, _ := filepath.EvalSymlinks(tmpDir)

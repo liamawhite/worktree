@@ -1,3 +1,17 @@
+// Copyright 2025 Liam White
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package worktree
 
 import (
@@ -72,19 +86,19 @@ func (wm *WorktreeManager) CreateHooks(base, branch string) error {
 	}
 
 	postAddHook := wm.GetPostAddHook()
-	
+
 	// Parse and execute template
 	tmpl, err := template.New("post-add").Parse(postAddHookTemplate)
 	if err != nil {
 		return err
 	}
-	
+
 	file, err := os.OpenFile(postAddHook, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
 	if err != nil {
 		return err
 	}
-	defer file.Close()
-	
+	defer func() { _ = file.Close() }()
+
 	data := struct {
 		Base   string
 		Branch string
@@ -92,7 +106,7 @@ func (wm *WorktreeManager) CreateHooks(base, branch string) error {
 		Base:   base,
 		Branch: branch,
 	}
-	
+
 	return tmpl.Execute(file, data)
 }
 
@@ -157,12 +171,12 @@ func (wm *WorktreeManager) ClearWorktrees() error {
 	for _, worktreePath := range filteredWorktrees {
 		worktree := filepath.Base(worktreePath)
 		fmt.Printf("Removing worktree: %s\n", worktree)
-		
+
 		if err := git.RunGitCommand("worktree", "remove", worktree, "--force"); err != nil {
 			fmt.Printf("Warning: failed to remove worktree %s: %v\n", worktree, err)
 			continue
 		}
-		
+
 		if err := git.DeleteBranch(wm.GitRoot, worktree); err != nil {
 			fmt.Printf("Warning: failed to delete branch %s: %v\n", worktree, err)
 		}
