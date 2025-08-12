@@ -15,6 +15,9 @@
 package cmd
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/liamawhite/worktree/pkg/setup"
 	"github.com/spf13/cobra"
 )
@@ -34,7 +37,13 @@ Clones the repository and configures upstream/origin remotes.`,
 			return err
 		}
 
-		return setup.SetupRepository(config, getConfigPath())
+		if err := setup.SetupRepository(config, getConfigPath()); err != nil {
+			return err
+		}
+
+		// Change to the newly created repository directory
+		fmt.Fprintf(os.Stderr, "WT_CHDIR:%s\n", config.RepoName)
+		return nil
 	},
 }
 
