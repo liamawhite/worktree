@@ -90,7 +90,7 @@ func setupGHERepo(repoConfig *RepoConfig, configPath string) error {
 	}
 
 	// Use the configured account for the fork
-	repoURL := fmt.Sprintf("https://%s/%s/%s.git", repoConfig.Domain, account, repoConfig.RepoName)
+	repoURL := cfg.GenerateUserRepositoryURL(repoConfig.Domain, repoConfig.RepoName)
 	if err := git.CloneBare(repoURL, ".bare"); err != nil {
 		return err
 	}
@@ -101,7 +101,7 @@ func setupGHERepo(repoConfig *RepoConfig, configPath string) error {
 
 	// Add upstream remote pointing to the original repository
 	fmt.Println("Adding upstream remote")
-	upstreamURL := fmt.Sprintf("https://%s/%s/%s.git", repoConfig.Domain, repoConfig.Org, repoConfig.RepoName)
+	upstreamURL := cfg.GenerateRepositoryURL(repoConfig.Domain, repoConfig.Org, repoConfig.RepoName)
 	if err := git.AddRemote(".bare", "upstream", upstreamURL); err != nil {
 		return err
 	}
@@ -113,6 +113,11 @@ func setupGHERepo(repoConfig *RepoConfig, configPath string) error {
 func setupDirectCloneGHE(repoConfig *RepoConfig, configPath string) error {
 	fmt.Printf("Cloning %s/%s/%s repository directly and hiding .git internals\n", repoConfig.Domain, repoConfig.Org, repoConfig.RepoName)
 
+	cfg, err := config.LoadConfigFromPath(configPath)
+	if err != nil {
+		return fmt.Errorf("failed to load config: %w", err)
+	}
+
 	if err := os.MkdirAll(repoConfig.RepoName, 0755); err != nil {
 		return err
 	}
@@ -121,7 +126,7 @@ func setupDirectCloneGHE(repoConfig *RepoConfig, configPath string) error {
 		return err
 	}
 
-	repoURL := fmt.Sprintf("https://%s/%s/%s.git", repoConfig.Domain, repoConfig.Org, repoConfig.RepoName)
+	repoURL := cfg.GenerateRepositoryURL(repoConfig.Domain, repoConfig.Org, repoConfig.RepoName)
 	if err := git.CloneBare(repoURL, ".bare"); err != nil {
 		return err
 	}
@@ -156,7 +161,7 @@ func setupGitHubRepo(repoConfig *RepoConfig, configPath string) error {
 	}
 
 	// Clone from the original repository
-	originURL := fmt.Sprintf("https://%s/%s/%s.git", repoConfig.Domain, repoConfig.Org, repoConfig.RepoName)
+	originURL := cfg.GenerateRepositoryURL(repoConfig.Domain, repoConfig.Org, repoConfig.RepoName)
 	if err := git.CloneBare(originURL, ".bare"); err != nil {
 		return err
 	}
@@ -168,7 +173,7 @@ func setupGitHubRepo(repoConfig *RepoConfig, configPath string) error {
 	// If the account is different from the original org, add the fork as a remote
 	if account != repoConfig.Org {
 		fmt.Printf("Adding %s remote for your fork\n", account)
-		forkURL := fmt.Sprintf("https://%s/%s/%s.git", repoConfig.Domain, account, repoConfig.RepoName)
+		forkURL := cfg.GenerateUserRepositoryURL(repoConfig.Domain, repoConfig.RepoName)
 		if err := git.AddRemote(".bare", account, forkURL); err != nil {
 			return err
 		}

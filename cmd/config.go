@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/liamawhite/worktree/pkg/config"
 	"github.com/spf13/cobra"
 )
 
@@ -57,70 +58,85 @@ Examples:
 	},
 }
 
-var getAccountCmd = &cobra.Command{
-	Use:   "get-account <domain>",
-	Short: "Get account name for a domain",
-	Long: `Get the configured account name for a specific domain.
 
-Examples:
-  wt config get-account github.com
-  wt config get-account enterprise.github.com`,
-	Args: cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
-		domain := args[0]
-
-		cfg, err := LoadConfigWithOverride()
-		if err != nil {
-			return fmt.Errorf("failed to load config: %w", err)
-		}
-
-		account := cfg.GetAccount(domain)
-		if account == "" {
-			fmt.Printf("No account configured for domain: %s\n", domain)
-			return nil
-		}
-
-		fmt.Printf("%s: %s\n", domain, account)
-		return nil
-	},
-}
-
-var listAccountsCmd = &cobra.Command{
-	Use:   "list-accounts",
-	Short: "List all configured domain-account mappings",
-	Long:  `List all configured domain-to-account mappings.`,
+var listCmd = &cobra.Command{
+	Use:   "list",
+	Short: "List all configured hosts with their full configuration",
+	Long:  `List all configured hosts showing both account and clone method.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cfg, err := LoadConfigWithOverride()
 		if err != nil {
 			return fmt.Errorf("failed to load config: %w", err)
 		}
 
-		accounts := cfg.ListAccounts()
+		hosts := cfg.ListHosts()
 
-		if len(accounts) == 0 {
-			fmt.Println("No accounts configured")
+		if len(hosts) == 0 {
+			fmt.Println("No hosts configured")
 			return nil
 		}
 
-		fmt.Println("Configured accounts:")
+		fmt.Println("Configured hosts:")
 
 		// Sort domains for consistent output
 		var domains []string
-		for domain := range accounts {
+		for domain := range hosts {
 			domains = append(domains, domain)
 		}
 		sort.Strings(domains)
 
 		for _, domain := range domains {
-			fmt.Printf("  %s: %s\n", domain, accounts[domain])
+			hostConfig := hosts[domain]
+			cloneMethod := hostConfig.CloneMethod
+			if cloneMethod == "" {
+				cloneMethod = config.CloneMethodHTTP // Default display
+			}
+			fmt.Printf("  %s: %s (clone: %s)\n", domain, hostConfig.Account, cloneMethod)
 		}
 
 		return nil
 	},
 }
 
+var setCloneMethodCmd = &cobra.Command{
+	Use:   "set-clone-method <domain> <method>",
+	Short: "Set clone method for a domain",
+	Long: `Set the clone method (http or ssh) to use for a specific domain.
+
+Examples:
+  wt config set-clone-method github.com ssh
+  wt config set-clone-method enterprise.github.com http
+  wt config set-clone-method gitlab.company.com ssh`,
+	Args: cobra.ExactArgs(2),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		domain := args[0]
+		methodStr := args[1]
+
+		cfg, err := LoadConfigWithOverride()
+		if err != nil {
+			return fmt.Errorf("failed to load config: %w", err)
+		}
+
+		method, err := config.ParseCloneMethod(methodStr)
+		if err != nil {
+			return err
+		}
+
+		cfg.SetCloneMethod(domain, method)
+
+		if err := SaveConfigWithOverride(cfg); err != nil {
+			return fmt.Errorf("failed to save config: %w", err)
+		}
+
+		fmt.Printf("Set clone method for %s to %s\n", domain, method)
+		return nil
+	},
+}
+
+
+
 func init() {
 	configCmd.AddCommand(setAccountCmd)
-	configCmd.AddCommand(getAccountCmd)
-	configCmd.AddCommand(listAccountsCmd)
+	configCmd.AddCommand(listCmd)
+	configCmd.AddCommand(setCloneMethodCmd)
 }
