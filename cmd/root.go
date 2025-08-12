@@ -19,6 +19,7 @@ import (
 	"os"
 
 	"github.com/liamawhite/worktree/pkg/config"
+	"github.com/liamawhite/worktree/pkg/version"
 	"github.com/spf13/cobra"
 )
 
@@ -62,6 +63,11 @@ enterprise Git hosting, and interactive worktree switching.`,
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
+		if showVersion, _ := cmd.Flags().GetBool("version"); showVersion {
+			info := version.GetInfo()
+			fmt.Println(info.String())
+			return
+		}
 		_ = cmd.Help()
 	},
 }
@@ -71,12 +77,16 @@ func init() {
 	defaultPath := getDefaultConfigPath()
 	RootCmd.PersistentFlags().StringP("config", "c", defaultPath, "config file path")
 
+	// Add version flag
+	RootCmd.Flags().BoolP("version", "v", false, "show version information")
+
 	RootCmd.AddCommand(setupCmd)
 	RootCmd.AddCommand(addCmd)
 	RootCmd.AddCommand(rmCmd)
 	RootCmd.AddCommand(clearCmd)
 	RootCmd.AddCommand(switchCmd)
 	RootCmd.AddCommand(configCmd)
+	RootCmd.AddCommand(versionCmd)
 }
 
 // LoadConfigWithOverride loads config using the resolved config path

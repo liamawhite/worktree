@@ -39,9 +39,9 @@ builds:
       - arm64
     ldflags:
       - -s -w
-      - -X main.version={{.Version}}
-      - -X main.commit={{.FullCommit}}
-      - -X main.date={{.Date}}
+      - -X github.com/liamawhite/worktree/pkg/version.version={{.Version}}
+      - -X github.com/liamawhite/worktree/pkg/version.commit={{.FullCommit}}
+      - -X github.com/liamawhite/worktree/pkg/version.date={{.Date}}
 
 archives:
   - id: worktree
