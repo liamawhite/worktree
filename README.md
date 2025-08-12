@@ -67,7 +67,7 @@ This workflow lets you maintain multiple branches simultaneously without the ove
 
 ## Configuration
 
-The `wt` tool uses a flexible configuration system to manage Git hosting providers and authentication methods. Configuration is stored in `~/.config/worktree/settings.yaml`.
+`worktree` uses a flexible configuration system to manage Git hosting providers and authentication methods. Configuration is typically stored in `~/.config/worktree/settings.yaml`.
 
 ### Quick Start
 
