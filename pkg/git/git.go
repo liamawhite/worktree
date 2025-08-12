@@ -16,6 +16,7 @@ package git
 
 import (
 	"fmt"
+	"net"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -25,7 +26,8 @@ import (
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/transport"
-	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
+	gitssh "github.com/go-git/go-git/v5/plumbing/transport/ssh"
+	"golang.org/x/crypto/ssh/agent"
 )
 
 func FindGitRoot() (string, error) {
@@ -119,13 +121,32 @@ func CloneBare(url, path string) error {
 	}
 
 	_, err := git.PlainClone(path, true, cloneOptions)
+	if err != nil && strings.Contains(err.Error(), "knownhosts: key mismatch") {
+		return fmt.Errorf("SSH host key verification failed. Run: ssh-keyscan %s >> ~/.ssh/known_hosts", extractHostFromURL(url))
+	}
 	return err
 }
 
 // getSSHAuth configures SSH authentication using the SSH agent or default key locations
 func getSSHAuth() (transport.AuthMethod, error) {
-	// Try to use SSH agent first
-	auth, err := ssh.NewSSHAgentAuth("git")
+	// Try to connect to SSH agent using SSH_AUTH_SOCK
+	if authSock := os.Getenv("SSH_AUTH_SOCK"); authSock != "" {
+		conn, err := net.Dial("unix", authSock)
+		if err == nil {
+			agentClient := agent.NewClient(conn)
+			keys, err := agentClient.List()
+			if err == nil && len(keys) > 0 {
+				auth, err := gitssh.NewSSHAgentAuth("git")
+				if err == nil {
+					return auth, nil
+				}
+			}
+			_ = conn.Close()
+		}
+	}
+
+	// Fallback to go-git's SSH agent implementation
+	auth, err := gitssh.NewSSHAgentAuth("git")
 	if err == nil {
 		return auth, nil
 	}
@@ -145,7 +166,7 @@ func getSSHAuth() (transport.AuthMethod, error) {
 
 	for _, keyPath := range keyPaths {
 		if _, err := os.Stat(keyPath); err == nil {
-			auth, err := ssh.NewPublicKeysFromFile("git", keyPath, "")
+			auth, err := gitssh.NewPublicKeysFromFile("git", keyPath, "")
 			if err == nil {
 				return auth, nil
 			}
@@ -153,6 +174,26 @@ func getSSHAuth() (transport.AuthMethod, error) {
 	}
 
 	return nil, fmt.Errorf("no SSH authentication method available (tried SSH agent and common key locations)")
+}
+
+// extractHostFromURL extracts the hostname from a git URL
+func extractHostFromURL(url string) string {
+	if strings.HasPrefix(url, "git@") {
+		// SSH format: git@hostname:org/repo.git
+		parts := strings.Split(url, ":")
+		if len(parts) > 0 {
+			return strings.TrimPrefix(parts[0], "git@")
+		}
+	} else if strings.HasPrefix(url, "https://") || strings.HasPrefix(url, "http://") {
+		// HTTP/HTTPS format: https://hostname/org/repo.git
+		url = strings.TrimPrefix(url, "https://")
+		url = strings.TrimPrefix(url, "http://")
+		parts := strings.Split(url, "/")
+		if len(parts) > 0 {
+			return parts[0]
+		}
+	}
+	return "github.com"
 }
 
 // OpenRepository opens a git repository using go-git
