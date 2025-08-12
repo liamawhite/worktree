@@ -17,6 +17,7 @@
 package integration
 
 import (
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -144,6 +145,57 @@ func TestWorktreeFullWorkflow(t *testing.T) {
 
 	t.Logf("Final worktree directories: %v", worktreeDirs)
 	t.Log("✅ Integration test completed successfully!")
+}
+
+func TestSetupDirectoryChange(t *testing.T) {
+	framework := NewFramework(t)
+	defer framework.Cleanup()
+
+	// Setup account configuration
+	framework.SetupAccount("github.com", "test")
+
+	t.Log("Testing setup command directory change signal...")
+
+	// Run setup command and capture stderr for WT_CHDIR signal
+	fullArgs := []string{"--config", framework.ConfigPath, "setup", testRepo, "--base", testBranch}
+	cmd := exec.Command(framework.BinaryPath, fullArgs...)
+	cmd.Env = append(os.Environ(), "WORKTREE_CONFIG="+framework.ConfigPath)
+
+	// Capture both stdout and stderr separately
+	stdout, err := cmd.StdoutPipe()
+	require.NoError(t, err)
+	stderr, err := cmd.StderrPipe()
+	require.NoError(t, err)
+
+	// Start the command
+	err = cmd.Start()
+	require.NoError(t, err)
+
+	// Read stderr to capture WT_CHDIR signal
+	var stderrOutput []byte
+	stderrOutput, err = io.ReadAll(stderr)
+	require.NoError(t, err)
+
+	// Read stdout
+	var stdoutOutput []byte
+	stdoutOutput, err = io.ReadAll(stdout)
+	require.NoError(t, err)
+
+	// Wait for command to complete
+	err = cmd.Wait()
+	require.NoError(t, err, "Setup command failed. Stdout: %s, Stderr: %s", string(stdoutOutput), string(stderrOutput))
+
+	// Verify WT_CHDIR signal is present in stderr
+	stderrString := string(stderrOutput)
+	expectedSignal := "WT_CHDIR:worktree"
+	assert.Contains(t, stderrString, expectedSignal, "Setup command should output directory change signal")
+	t.Logf("Setup stderr output: %s", stderrString)
+	t.Logf("Setup stdout output: %s", string(stdoutOutput))
+
+	// Verify repository was actually created
+	assert.DirExists(t, "worktree", "Repository directory should exist after setup")
+
+	t.Log("✅ Setup directory change test completed successfully!")
 }
 
 func TestConfigOverrides(t *testing.T) {
