@@ -65,6 +65,79 @@ git push origin feature/api-endpoints
 
 This workflow lets you maintain multiple branches simultaneously without the overhead of constant `git stash`/`git checkout` cycles.
 
+## Configuration
+
+`worktree` uses a flexible configuration system to manage Git hosting providers and authentication methods. Configuration is typically stored in `~/.config/worktree/settings.yaml`.
+
+### Quick Start
+
+Configure your GitHub username:
+```bash
+wt config set-account github.com your-username
+```
+
+Set SSH as your preferred clone method:
+```bash
+wt config set-clone-method github.com ssh
+```
+
+View all configured hosts:
+```bash
+wt config list
+```
+
+### Configuration Commands
+
+#### `wt config list`
+Shows all configured hosts with their accounts and clone methods:
+```bash
+$ wt config list
+Configured hosts:
+  enterprise.company.com: john.doe (clone: ssh)
+  github.com: your-username (clone: http)
+  gitlab.com: your-username (clone: ssh)
+```
+
+#### `wt config set-account <domain> <account>`
+Sets the account/username for a Git hosting provider:
+```bash
+# GitHub.com
+wt config set-account github.com your-username
+
+# GitHub Enterprise
+wt config set-account github.enterprise.com john.doe
+
+# GitLab
+wt config set-account gitlab.com your-username
+```
+
+#### `wt config set-clone-method <domain> <method>`
+Sets the clone method (http or ssh) for a Git hosting provider:
+```bash
+# Use SSH for GitHub (recommended for authenticated access)
+wt config set-clone-method github.com ssh
+
+# Use HTTPS for enterprise Git (might be required by corporate policy)
+wt config set-clone-method github.enterprise.com http
+```
+
+### Configuration File Format
+
+The configuration is stored as YAML in `~/.config/worktree/settings.yaml`:
+
+```yaml
+hosts:
+  github.com:
+    account: your-username
+    clone_method: ssh
+  github.enterprise.com:
+    account: john.doe
+    clone_method: http
+  gitlab.com:
+    account: your-username
+    clone_method: ssh
+```
+
 ## Development
 
 ### Building

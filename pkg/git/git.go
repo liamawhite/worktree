@@ -24,6 +24,8 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/transport"
+	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 )
 
 func FindGitRoot() (string, error) {
@@ -102,11 +104,55 @@ func RunCommandInDir(dir, name string, args ...string) error {
 
 // CloneBare clones a repository as a bare repository using go-git
 func CloneBare(url, path string) error {
-	_, err := git.PlainClone(path, true, &git.CloneOptions{
+	cloneOptions := &git.CloneOptions{
 		URL:      url,
 		Progress: os.Stdout,
-	})
+	}
+
+	// If this is an SSH URL, configure SSH authentication
+	if strings.HasPrefix(url, "git@") {
+		auth, err := getSSHAuth()
+		if err != nil {
+			return fmt.Errorf("failed to configure SSH authentication: %w", err)
+		}
+		cloneOptions.Auth = auth
+	}
+
+	_, err := git.PlainClone(path, true, cloneOptions)
 	return err
+}
+
+// getSSHAuth configures SSH authentication using the SSH agent or default key locations
+func getSSHAuth() (transport.AuthMethod, error) {
+	// Try to use SSH agent first
+	auth, err := ssh.NewSSHAgentAuth("git")
+	if err == nil {
+		return auth, nil
+	}
+
+	// Fallback to default SSH key locations
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user home directory: %w", err)
+	}
+
+	// Try common SSH key locations
+	keyPaths := []string{
+		filepath.Join(homeDir, ".ssh", "id_rsa"),
+		filepath.Join(homeDir, ".ssh", "id_ed25519"),
+		filepath.Join(homeDir, ".ssh", "id_ecdsa"),
+	}
+
+	for _, keyPath := range keyPaths {
+		if _, err := os.Stat(keyPath); err == nil {
+			auth, err := ssh.NewPublicKeysFromFile("git", keyPath, "")
+			if err == nil {
+				return auth, nil
+			}
+		}
+	}
+
+	return nil, fmt.Errorf("no SSH authentication method available (tried SSH agent and common key locations)")
 }
 
 // OpenRepository opens a git repository using go-git
