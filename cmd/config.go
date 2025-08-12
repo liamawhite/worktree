@@ -58,7 +58,6 @@ Examples:
 	},
 }
 
-
 var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List all configured hosts with their full configuration",
@@ -132,8 +131,6 @@ Examples:
 		return nil
 	},
 }
-
-
 
 func init() {
 	configCmd.AddCommand(setAccountCmd)

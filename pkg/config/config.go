@@ -29,7 +29,7 @@ type CloneMethod string
 const (
 	// CloneMethodHTTP uses HTTPS URLs for cloning
 	CloneMethodHTTP CloneMethod = "http"
-	// CloneMethodSSH uses SSH URLs for cloning  
+	// CloneMethodSSH uses SSH URLs for cloning
 	CloneMethodSSH CloneMethod = "ssh"
 )
 
@@ -61,9 +61,9 @@ type HostConfig struct {
 // Config represents the application configuration
 type Config struct {
 	// Legacy field for backward compatibility - will be migrated to Hosts
-	Accounts map[string]string    `yaml:"accounts,omitempty"`
+	Accounts map[string]string `yaml:"accounts,omitempty"`
 	// New field for host configurations
-	Hosts    map[string]HostConfig `yaml:"hosts,omitempty"`
+	Hosts map[string]HostConfig `yaml:"hosts,omitempty"`
 }
 
 // DefaultConfig returns a config with sensible defaults
@@ -145,7 +145,7 @@ func (c *Config) migrate() error {
 		if c.Hosts == nil {
 			c.Hosts = make(map[string]HostConfig)
 		}
-		
+
 		// Only migrate accounts that don't already exist in hosts
 		for domain, account := range c.Accounts {
 			if _, exists := c.Hosts[domain]; !exists {
@@ -287,7 +287,7 @@ func (c *Config) ListHosts() map[string]HostConfig {
 // GenerateRepositoryURL generates the appropriate repository URL based on the clone method
 func (c *Config) GenerateRepositoryURL(domain, org, repo string) string {
 	cloneMethod := c.GetCloneMethod(domain)
-	
+
 	switch cloneMethod {
 	case CloneMethodSSH:
 		return fmt.Sprintf("git@%s:%s/%s.git", domain, org, repo)
@@ -305,9 +305,9 @@ func (c *Config) GenerateUserRepositoryURL(domain, repo string) string {
 		// Fallback to HTTP with empty account - this will likely fail but preserves existing behavior
 		return fmt.Sprintf("https://%s//%s.git", domain, repo)
 	}
-	
+
 	cloneMethod := c.GetCloneMethod(domain)
-	
+
 	switch cloneMethod {
 	case CloneMethodSSH:
 		return fmt.Sprintf("git@%s:%s/%s.git", domain, account, repo)
