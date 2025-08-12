@@ -7,9 +7,9 @@ SHELL := nix develop --command bash
 VERSION := $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 COMMIT := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 DATE := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
-LDFLAGS := -w -s -X main.version=$(VERSION) \
-           -X main.commit=$(COMMIT) \
-           -X main.date=$(DATE)
+LDFLAGS := -w -s -X github.com/liamawhite/worktree/pkg/version.version=$(VERSION) \
+           -X github.com/liamawhite/worktree/pkg/version.commit=$(COMMIT) \
+           -X github.com/liamawhite/worktree/pkg/version.date=$(DATE)
 
 .PHONY: build check clean format lint test-unit dirty
 
