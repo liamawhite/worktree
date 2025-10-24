@@ -122,7 +122,7 @@ release:
         local cmd="$1"
         
         # Commands that should change directory
-        if [[ "$cmd" == "add" || "$cmd" == "switch" || "$cmd" == "sw" ]]; then
+        if [[ "$cmd" == "add" || "$cmd" == "switch" || "$cmd" == "sw" || "$cmd" == "setup" ]]; then
             # Capture stderr to look for WT_CHDIR while preserving stdout and interactive TUI
             local temp_file
             temp_file=$(mktemp)
@@ -150,7 +150,7 @@ release:
         fi
     }
     ```
-    After adding this function and restarting your shell (or running `source ~/.bashrc`/`source ~/.zshrc`), the `worktree add` and `worktree switch` commands will automatically change your current directory to the worktree location.
+    After adding this function and restarting your shell (or running `source ~/.bashrc`/`source ~/.zshrc`), the `worktree add`, `worktree switch`, and `worktree setup` commands will automatically change your current directory to the worktree location.
 
     ### Verification with Checksums
     Download `checksums.txt` and verify your binary:

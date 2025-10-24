@@ -48,13 +48,6 @@ func TestWorktreeFullWorkflow(t *testing.T) {
 	require.NoError(t, err, "Failed to setup repository: %s", string(output))
 	t.Logf("Setup output: %s", string(output))
 
-	// Verify repository structure was created
-	assert.DirExists(t, "worktree", "Repository directory should exist")
-
-	// Change into repository directory
-	err = os.Chdir("worktree")
-	require.NoError(t, err)
-
 	// Verify basic repository structure
 	assert.DirExists(t, ".bare", "Bare repository should exist")
 	assert.FileExists(t, ".git", "Git directory file should exist")
